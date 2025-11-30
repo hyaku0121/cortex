@@ -16,7 +16,11 @@ console = Console()
 
 @dataclass
 class CleanupItem:
-    category: str; description: str; size_bytes: int; paths: List[str]; safe_to_delete: bool = True
+    category: str
+        description: str
+        size_bytes: int
+        paths: List[str]
+        safe_to_delete: bool = True
 
 class CleanupEngine:
     def __init__(self):
@@ -62,12 +66,16 @@ def cleanup_cli(dry_run: bool = False):
     total = sum(i.size_bytes for i in engine.items)
     console.print(Panel(f"[bold green]Cleanup Opportunities[/bold green]\nTotal: [bold cyan]{_format_size(total)}[/bold cyan]", title="🧹 Cortex Cleaner", expand=False))
     table = Table(box=None, show_header=True)
-    table.add_column("Category", style="bold"); table.add_column("Size", style="cyan"); table.add_column("Action")
+    table.add_column("Category", style="bold")
+        table.add_column("Size", style="cyan")
+        table.add_column("Action")
     for i in engine.items:
         act = "Compress" if "Logs" in i.category else "Remove"
         table.add_row(i.category, _format_size(i.size_bytes), act)
-    console.print(table); console.print()
-    if dry_run: console.print("[yellow]🚧 Dry-run mode.[/yellow]"); return
+    console.print(table)
+        console.print()
+    if dry_run: console.print("[yellow]🚧 Dry-run mode.[/yellow]")
+        return
     console.print("[bold]Running cleanup...[/bold]")
     freed = engine.execute_cleanup(dry_run=False)
     console.print(f"\n[bold green]✨ Cleanup Complete! Freed {_format_size(freed)}.[/bold green]")

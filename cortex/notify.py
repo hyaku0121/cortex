@@ -12,7 +12,10 @@ CONFIG_FILE = Path.home() / ".cortex" / "notify_config.json"
 
 @dataclass
 class NotifyConfig:
-    enabled: bool = True; dnd_enabled: bool = True; dnd_start: str = "22:00"; dnd_end: str = "08:00"
+    enabled: bool = True
+    dnd_enabled: bool = True
+    dnd_start: str = "22:00"
+    dnd_end: str = "08:00"
 
 class NotificationManager:
     def __init__(self): self.config = self._load_config()
@@ -20,7 +23,7 @@ class NotificationManager:
         if not CONFIG_FILE.exists(): return NotifyConfig()
         try:
             with open(CONFIG_FILE, 'r') as f: return NotifyConfig(**json.load(f))
-        except (OSError, json.JSONDecodeError, TypeError): return NotifyConfig()
+        except (OSError, json.JSONDecodeError, TypeError, ValueError): return NotifyConfig()
     def save_config(self):
         CONFIG_FILE.parent.mkdir(parents=True, exist_ok=True)
         try: with open(CONFIG_FILE, 'w') as f: json.dump(self.config.__dict__, f, indent=2)
@@ -39,7 +42,8 @@ class NotificationManager:
         if self._is_dnd_active() and level != "critical": return False
         bin_path = shutil.which('notify-send')
         if not bin_path:
-            print(f"[{level.upper()}] {title}: {message}"); return True
+            print(f"[{level.upper()}] {title}: {message}")
+    return True
         u = "critical" if level == "critical" else "normal"
         try:
             subprocess.run([bin_path, title, message, "-u", u, "-a", "Cortex"], check=True, capture_output=True)
@@ -48,12 +52,15 @@ class NotificationManager:
 
 def notify_cli(title: str, message: str, configure: bool = False, dnd_toggle: bool = False):
     m = NotificationManager()
-    if configure: print(f"Current Config: {m.config}"); return
+    if configure:
+        print(f"Current Config: {m.config}")
+    return
     if dnd_toggle:
         m.config.dnd_enabled = not m.config.dnd_enabled
         m.save_config()
         s = "enabled" if m.config.dnd_enabled else "disabled"
-        print(f"✅ Smart DND mode {s}."); return
+        print(f"✅ Smart DND mode {s}.")
+    return
     if m.send(title, message): print("✅ Notification sent.")
     else: print("zzz Notification suppressed.")
 
